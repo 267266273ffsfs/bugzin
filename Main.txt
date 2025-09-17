@@ -1,8 +1,9 @@
--- Bug Player GUI System (Local Target Version) - Sem prisão
+-- Bug Player GUI System (Local Target Version) - Compact + Select All
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
+local Debris = game:GetService("Debris")
 local LocalPlayer = Players.LocalPlayer
 
 -- Variáveis
@@ -10,20 +11,20 @@ local selectedPlayers = {}
 local bugPlayerActive = false
 local bugConnection = nil
 
--- Criar ScreenGui
+-- ScreenGui
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "BugPlayerGUI"
+ScreenGui.Name = "BugPlayerGUI_Compact"
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.ResetOnSpawn = false
 
--- Frame principal
+-- Frame principal (compacto)
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 MainFrame.BorderSizePixel = 0
-MainFrame.Position = UDim2.new(0.1, 0, 0.1, 0)
-MainFrame.Size = UDim2.new(0, 320, 0, 500)
+MainFrame.Position = UDim2.new(0.15, 0, 0.15, 0)
+MainFrame.Size = UDim2.new(0, 250, 0, 420)
 MainFrame.Active = true
 MainFrame.Draggable = true
 
@@ -37,40 +38,38 @@ Header.Name = "Header"
 Header.Parent = MainFrame
 Header.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 Header.BorderSizePixel = 0
-Header.Size = UDim2.new(1, 0, 0, 50)
+Header.Size = UDim2.new(1, 0, 0, 40)
 
 local HeaderCorner = Instance.new("UICorner")
 HeaderCorner.CornerRadius = UDim.new(0, 12)
 HeaderCorner.Parent = Header
 
--- Título
 local Title = Instance.new("TextLabel")
 Title.Name = "Title"
 Title.Parent = Header
 Title.BackgroundTransparency = 1
-Title.Position = UDim2.new(0, 15, 0, 0)
-Title.Size = UDim2.new(1, -60, 1, 0)
+Title.Position = UDim2.new(0, 10, 0, 0)
+Title.Size = UDim2.new(1, -40, 1, 0)
 Title.Font = Enum.Font.GothamBold
-Title.Text = "Bug players"
+Title.Text = "🐛 Bug System"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.TextScaled = true
 Title.TextXAlignment = Enum.TextXAlignment.Left
 
--- Botão fechar
 local CloseButton = Instance.new("TextButton")
 CloseButton.Name = "CloseButton"
 CloseButton.Parent = Header
 CloseButton.BackgroundColor3 = Color3.fromRGB(255, 85, 85)
 CloseButton.BorderSizePixel = 0
-CloseButton.Position = UDim2.new(1, -40, 0, 10)
-CloseButton.Size = UDim2.new(0, 30, 0, 30)
+CloseButton.Position = UDim2.new(1, -30, 0, 5)
+CloseButton.Size = UDim2.new(0, 25, 0, 25)
 CloseButton.Font = Enum.Font.GothamBold
 CloseButton.Text = "×"
 CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 CloseButton.TextScaled = true
 
 local CloseCorner = Instance.new("UICorner")
-CloseCorner.CornerRadius = UDim.new(0, 8)
+CloseCorner.CornerRadius = UDim.new(0, 6)
 CloseCorner.Parent = CloseButton
 
 -- Status Frame
@@ -79,33 +78,31 @@ StatusFrame.Name = "StatusFrame"
 StatusFrame.Parent = MainFrame
 StatusFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 StatusFrame.BorderSizePixel = 0
-StatusFrame.Position = UDim2.new(0, 10, 0, 60)
-StatusFrame.Size = UDim2.new(1, -20, 0, 60)
+StatusFrame.Position = UDim2.new(0, 10, 0, 45)
+StatusFrame.Size = UDim2.new(1, -20, 0, 50)
 
 local StatusCorner = Instance.new("UICorner")
 StatusCorner.CornerRadius = UDim.new(0, 8)
 StatusCorner.Parent = StatusFrame
 
--- Status Label Bug
 local BugStatusLabel = Instance.new("TextLabel")
 BugStatusLabel.Name = "BugStatusLabel"
 BugStatusLabel.Parent = StatusFrame
 BugStatusLabel.BackgroundTransparency = 1
-BugStatusLabel.Position = UDim2.new(0, 10, 0, 10)
-BugStatusLabel.Size = UDim2.new(1, -20, 0, 20)
+BugStatusLabel.Position = UDim2.new(0, 5, 0, 5)
+BugStatusLabel.Size = UDim2.new(1, -10, 0, 20)
 BugStatusLabel.Font = Enum.Font.Gotham
 BugStatusLabel.Text = "Bug Status: ⚫ Inativo"
 BugStatusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 BugStatusLabel.TextScaled = true
 BugStatusLabel.TextXAlignment = Enum.TextXAlignment.Left
 
--- Selected Count Label
 local SelectedLabel = Instance.new("TextLabel")
 SelectedLabel.Name = "SelectedLabel"
 SelectedLabel.Parent = StatusFrame
 SelectedLabel.BackgroundTransparency = 1
-SelectedLabel.Position = UDim2.new(0, 10, 0, 35)
-SelectedLabel.Size = UDim2.new(1, -20, 0, 20)
+SelectedLabel.Position = UDim2.new(0, 5, 0, 25)
+SelectedLabel.Size = UDim2.new(1, -10, 0, 20)
 SelectedLabel.Font = Enum.Font.Gotham
 SelectedLabel.Text = "Players Selecionados: 0"
 SelectedLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
@@ -117,80 +114,78 @@ local ControlFrame = Instance.new("Frame")
 ControlFrame.Name = "ControlFrame"
 ControlFrame.Parent = MainFrame
 ControlFrame.BackgroundTransparency = 1
-ControlFrame.Position = UDim2.new(0, 10, 0, 130)
-ControlFrame.Size = UDim2.new(1, -20, 0, 50)
+ControlFrame.Position = UDim2.new(0, 10, 0, 100)
+ControlFrame.Size = UDim2.new(1, -20, 0, 40)
 
--- Botão atualizar
 local RefreshButton = Instance.new("TextButton")
 RefreshButton.Name = "RefreshButton"
 RefreshButton.Parent = ControlFrame
 RefreshButton.BackgroundColor3 = Color3.fromRGB(85, 170, 255)
 RefreshButton.BorderSizePixel = 0
 RefreshButton.Position = UDim2.new(0, 0, 0, 0)
-RefreshButton.Size = UDim2.new(0.48, 0, 1, 0)
+RefreshButton.Size = UDim2.new(0.3, 0, 1, 0)
 RefreshButton.Font = Enum.Font.GothamBold
 RefreshButton.Text = "🔄 Atualizar"
 RefreshButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 RefreshButton.TextScaled = true
 
-local RefreshCorner = Instance.new("UICorner")
-RefreshCorner.CornerRadius = UDim.new(0, 8)
-RefreshCorner.Parent = RefreshButton
-
--- Botão bug player
 local BugButton = Instance.new("TextButton")
 BugButton.Name = "BugButton"
 BugButton.Parent = ControlFrame
 BugButton.BackgroundColor3 = Color3.fromRGB(85, 255, 85)
 BugButton.BorderSizePixel = 0
-BugButton.Position = UDim2.new(0.52, 0, 0, 0)
-BugButton.Size = UDim2.new(0.48, 0, 1, 0)
+BugButton.Position = UDim2.new(0.32, 0, 0, 0)
+BugButton.Size = UDim2.new(0.33, 0, 1, 0)
 BugButton.Font = Enum.Font.GothamBold
 BugButton.Text = "🟢 Ativar Bug"
 BugButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 BugButton.TextScaled = true
 
-local BugCorner = Instance.new("UICorner")
-BugCorner.CornerRadius = UDim.new(0, 8)
-BugCorner.Parent = BugButton
+local SelectAllButton = Instance.new("TextButton")
+SelectAllButton.Name = "SelectAllButton"
+SelectAllButton.Parent = ControlFrame
+SelectAllButton.BackgroundColor3 = Color3.fromRGB(255, 170, 0)
+SelectAllButton.BorderSizePixel = 0
+SelectAllButton.Position = UDim2.new(0.67, 0, 0, 0)
+SelectAllButton.Size = UDim2.new(0.33, 0, 1, 0)
+SelectAllButton.Font = Enum.Font.GothamBold
+SelectAllButton.Text = "Selecionar Todos"
+SelectAllButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+SelectAllButton.TextScaled = true
 
--- ScrollFrame para lista de players
+-- ScrollFrame lista de players
 local PlayerScrollFrame = Instance.new("ScrollingFrame")
 PlayerScrollFrame.Name = "PlayerScrollFrame"
 PlayerScrollFrame.Parent = MainFrame
 PlayerScrollFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 PlayerScrollFrame.BorderSizePixel = 0
-PlayerScrollFrame.Position = UDim2.new(0, 10, 0, 200)
-PlayerScrollFrame.Size = UDim2.new(1, -20, 1, -210)
-PlayerScrollFrame.ScrollBarThickness = 6
+PlayerScrollFrame.Position = UDim2.new(0, 10, 0, 150)
+PlayerScrollFrame.Size = UDim2.new(1, -20, 1, -160)
+PlayerScrollFrame.ScrollBarThickness = 5
 PlayerScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(85, 170, 255)
-
-local ScrollCorner = Instance.new("UICorner")
-ScrollCorner.CornerRadius = UDim.new(0, 8)
-ScrollCorner.Parent = PlayerScrollFrame
 
 local ListLayout = Instance.new("UIListLayout")
 ListLayout.Parent = PlayerScrollFrame
 ListLayout.SortOrder = Enum.SortOrder.Name
-ListLayout.Padding = UDim.new(0, 5)
+ListLayout.Padding = UDim.new(0, 4)
 
 -- Função de notificação
 local function createNotification(title, message, color)
     local NotifGui = Instance.new("ScreenGui")
     NotifGui.Parent = LocalPlayer.PlayerGui
     NotifGui.ResetOnSpawn = false
-    
+
     local NotifFrame = Instance.new("Frame")
     NotifFrame.Parent = NotifGui
     NotifFrame.BackgroundColor3 = color or Color3.fromRGB(40, 40, 40)
     NotifFrame.BorderSizePixel = 0
     NotifFrame.Position = UDim2.new(1, 10, 0, 100)
     NotifFrame.Size = UDim2.new(0, 300, 0, 80)
-    
+
     local NotifCorner = Instance.new("UICorner")
     NotifCorner.CornerRadius = UDim.new(0, 8)
     NotifCorner.Parent = NotifFrame
-    
+
     local NotifTitle = Instance.new("TextLabel")
     NotifTitle.Parent = NotifFrame
     NotifTitle.BackgroundTransparency = 1
@@ -201,7 +196,7 @@ local function createNotification(title, message, color)
     NotifTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
     NotifTitle.TextScaled = true
     NotifTitle.TextXAlignment = Enum.TextXAlignment.Left
-    
+
     local NotifMessage = Instance.new("TextLabel")
     NotifMessage.Parent = NotifFrame
     NotifMessage.BackgroundTransparency = 1
@@ -214,11 +209,11 @@ local function createNotification(title, message, color)
     NotifMessage.TextWrapped = true
     NotifMessage.TextXAlignment = Enum.TextXAlignment.Left
     NotifMessage.TextYAlignment = Enum.TextYAlignment.Top
-    
+
     local slideIn = TweenService:Create(NotifFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back), {Position = UDim2.new(1, -310, 0, 100)})
     slideIn:Play()
-    
-    game:GetService("Debris"):AddItem(NotifGui, 3)
+
+    Debris:AddItem(NotifGui, 3)
     wait(2.5)
     local slideOut = TweenService:Create(NotifFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {Position = UDim2.new(1, 10, 0, 100)})
     slideOut:Play()
@@ -241,12 +236,12 @@ local function toggleBugPlayer()
             createNotification("❌ Erro", "Selecione pelo menos um player.", Color3.fromRGB(255, 85, 85))
             return
         end
-        
+
         bugPlayerActive = true
         BugStatusLabel.Text = "Bug Status: 🔴 Ativo"
         BugButton.Text = "🔴 Desativar Bug"
         BugButton.BackgroundColor3 = Color3.fromRGB(255, 85, 85)
-        
+
         local Remote = ReplicatedStorage.RE:FindFirstChild("1Gu1n")
         if not Remote then
             createNotification("❌ Erro", "Remote não encontrado.", Color3.fromRGB(255, 85, 85))
@@ -256,13 +251,13 @@ local function toggleBugPlayer()
             BugButton.BackgroundColor3 = Color3.fromRGB(85, 255, 85)
             return
         end
-        
+
         local selectedPlayersList = {}
         for playerName, _ in pairs(selectedPlayers) do
             local player = Players:FindFirstChild(playerName)
             if player then table.insert(selectedPlayersList, player) end
         end
-        
+
         local index = 1
         bugConnection = RunService.Stepped:Connect(function()
             if not bugPlayerActive then return end
@@ -271,11 +266,7 @@ local function toggleBugPlayer()
             if index > #selectedPlayersList then index = 1 end
             local target = selectedPlayersList[index]
             if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-                local crazyVector = Vector3.new(
-                    math.random(1e7, 1e7),
-                    math.random(1e7, 1e7),
-                    math.random(1e7, 1e7)
-                )
+                local crazyVector = Vector3.new(math.random(1e7, 1e7), math.random(1e7, 1e7), math.random(1e7, 1e7))
                 local args = {
                     [1] = target.Character.HumanoidRootPart,
                     [2] = target.Character.HumanoidRootPart,
@@ -286,21 +277,14 @@ local function toggleBugPlayer()
                     [7] = 10000,
                     [8] = 10000,
                     [9] = { [1] = false },
-                    [10] = {
-                        [1] = 10000,
-                        [2] = Vector3.new(3000, 3000, 3000),
-                        [3] = BrickColor.new(29),
-                        [4] = 0.05,
-                        [5] = Enum.Material.SmoothPlastic,
-                        [6] = 0.05
-                    },
+                    [10] = { [1] = 10000, [2] = Vector3.new(3000,3000,3000), [3] = BrickColor.new(29), [4] = 0.05, [5] = Enum.Material.SmoothPlastic, [6] = 0.05 },
                     [11] = true,
                     [12] = false
                 }
                 Remote:FireServer(unpack(args))
             end
         end)
-        
+
         createNotification("🐛 Bug Ativado", "Bug ativado para " .. #selectedPlayersList .. " player(s).", Color3.fromRGB(85, 255, 85))
     end
 end
@@ -310,35 +294,35 @@ local function updatePlayerList()
     for _, child in pairs(PlayerScrollFrame:GetChildren()) do
         if child:IsA("TextButton") then child:Destroy() end
     end
-    
+
     local selectedCount = 0
     for _ in pairs(selectedPlayers) do selectedCount = selectedCount + 1 end
     SelectedLabel.Text = "Players Selecionados: " .. selectedCount
-    
+
     local players = Players:GetPlayers()
     local yPosition = 0
-    
+
     for i, player in pairs(players) do
         if player ~= LocalPlayer then
             local isSelected = selectedPlayers[player.Name] ~= nil
-            
+
             local PlayerButton = Instance.new("TextButton")
             PlayerButton.Name = player.Name
             PlayerButton.Parent = PlayerScrollFrame
             PlayerButton.BackgroundColor3 = isSelected and Color3.fromRGB(85, 255, 85) or Color3.fromRGB(45, 45, 45)
             PlayerButton.BorderSizePixel = 0
             PlayerButton.Position = UDim2.new(0, 5, 0, yPosition)
-            PlayerButton.Size = UDim2.new(1, -10, 0, 35)
+            PlayerButton.Size = UDim2.new(1, -10, 0, 30)
             PlayerButton.Font = Enum.Font.Gotham
             PlayerButton.Text = (isSelected and "✅ " or "⭕ ") .. player.Name
             PlayerButton.TextColor3 = Color3.fromRGB(255, 255, 255)
             PlayerButton.TextScaled = true
             PlayerButton.TextXAlignment = Enum.TextXAlignment.Left
-            
+
             local PlayerCorner = Instance.new("UICorner")
             PlayerCorner.CornerRadius = UDim.new(0, 6)
             PlayerCorner.Parent = PlayerButton
-            
+
             PlayerButton.MouseButton1Click:Connect(function()
                 if selectedPlayers[player.Name] then
                     selectedPlayers[player.Name] = nil
@@ -349,11 +333,11 @@ local function updatePlayerList()
                 end
                 updatePlayerList()
             end)
-            
-            yPosition = yPosition + 40
+
+            yPosition = yPosition + 35
         end
     end
-    
+
     PlayerScrollFrame.CanvasSize = UDim2.new(0, 0, 0, yPosition)
 end
 
@@ -365,13 +349,23 @@ CloseButton.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
 end)
 
+SelectAllButton.MouseButton1Click:Connect(function()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            selectedPlayers[player.Name] = true
+        end
+    end
+    updatePlayerList()
+    createNotification("🐛 Todos Selecionados", "Todos os players foram selecionados.", Color3.fromRGB(255, 170, 0))
+end)
+
 Players.PlayerRemoving:Connect(function(player)
     if selectedPlayers[player.Name] then selectedPlayers[player.Name] = nil end
     updatePlayerList()
 end)
 
--- Inicializar
-MainFrame.Position = UDim2.new(0.1, 0, -1, 0)
-TweenService:Create(MainFrame, TweenInfo.new(0.7, Enum.EasingStyle.Back), {Position = UDim2.new(0.1, 0, 0.1, 0)}):Play()
+-- Inicialização
+MainFrame.Position = UDim2.new(0.15, 0, -1, 0)
+TweenService:Create(MainFrame, TweenInfo.new(0.7, Enum.EasingStyle.Back), {Position = UDim2.new(0.15, 0, 0.15, 0)}):Play()
 updatePlayerList()
-createNotification("🐛 Sistema Carregado", "Selecione players e use o bug.", Color3.fromRGB(85, 170, 255))
+createNotification("🐛 Sistema Carregado", "Selecione players e ative o bug.", Color3.fromRGB(85, 170, 255))
